@@ -1,0 +1,72 @@
+<mujoco model="unnamed_model">
+  <compiler strippath="false" angle="radian"/>
+  <option timestep="0.002" gravity="0 0 0" integrator="implicitfast"/>
+  <default>
+    <default class="/"/>
+    <default class="XMC7-R850-W4X3B4/"/>
+  </default>
+  <asset>
+    <mesh name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_base" class="XMC7-R850-W4X3B4/" content_type="model/stl" file="000_XMC7-R850-W4X3B4_base-9e2f1e8d378469aa63e98ebfe8ec7ee858f213a9.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link1" class="XMC7-R850-W4X3B4/" content_type="model/stl" file="001_XMC7-R850-W4X3B4_link1-a8ded767bb5a2798b3e6cc3018054ccdeabb92b6.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link2" class="XMC7-R850-W4X3B4/" content_type="model/stl" file="002_XMC7-R850-W4X3B4_link2-6df190f9f6074523ebb0c73f4fd9924291bca14c.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link3" class="XMC7-R850-W4X3B4/" content_type="model/stl" file="003_XMC7-R850-W4X3B4_link3-74924ec816aeedd5cd48f0abe0e72f2f61fcd26b.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link4" class="XMC7-R850-W4X3B4/" content_type="model/stl" file="004_XMC7-R850-W4X3B4_link4-6c302a3648393ace379778d75a4c81bc2ba7263f.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link5" class="XMC7-R850-W4X3B4/" content_type="model/stl" file="005_XMC7-R850-W4X3B4_link5-5bbe19db96efffa0a941b41995be5ef35a7e13ae.stl" scale="0.001 0.001 0.001"/>
+    <mesh name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link6" class="XMC7-R850-W4X3B4/" content_type="model/stl" file="006_XMC7-R850-W4X3B4_link6-788fd5b58ef53d838ff6019c9e1092f1c948e9f2.stl" scale="0.001 0.001 0.001"/>
+  </asset>
+  <worldbody>
+    <body name="XMC7-R850-W4X3B4/">
+      <body name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_base">
+        <geom name="XMC7-R850-W4X3B4//unnamed_geom_0" class="XMC7-R850-W4X3B4/" type="mesh" contype="0" conaffinity="0" group="1" density="0" mesh="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_base" rgba="1 1 1 1"/>
+        <geom name="XMC7-R850-W4X3B4//unnamed_geom_1" class="XMC7-R850-W4X3B4/" type="mesh" mesh="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_base" rgba="1 1 1 1"/>
+        <body name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link1">
+          <inertial pos="-6.0000000000000002e-06 0.035425999999999999 0.22786100000000001" quat="0.95201400000000003 0.30605199999999999 0.00018580300000000001 -0.0011396500000000001" mass="5.4889999999999999" diaginertia="0.049303899999999998 0.046731500000000002 0.018726900000000001"/>
+          <joint name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_joint_1" class="XMC7-R850-W4X3B4/" pos="0 0 0" axis="0 0 1" range="-6.2831999999999999 6.2831999999999999" actuatorfrcrange="-194 194"/>
+          <geom name="XMC7-R850-W4X3B4//unnamed_geom_2" class="XMC7-R850-W4X3B4/" type="mesh" contype="0" conaffinity="0" group="1" density="0" mesh="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link1" rgba="1 1 1 1"/>
+          <geom name="XMC7-R850-W4X3B4//unnamed_geom_3" class="XMC7-R850-W4X3B4/" type="mesh" mesh="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link1" rgba="1 1 1 1"/>
+          <body name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link2" pos="0 0 0.29599999999999999">
+            <inertial pos="-6.0000000000000002e-06 0.15501799999999999 0.199572" quat="0.99992899999999996 0.011949100000000001 9.8060999999999995e-05 -0.00041156299999999999" mass="7.2809999999999997" diaginertia="0.34218300000000001 0.33752700000000002 0.024986299999999999"/>
+            <joint name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_joint_2" class="XMC7-R850-W4X3B4/" pos="0 0 0" axis="0 1 0" range="-6.2831999999999999 6.2831999999999999" actuatorfrcrange="-194 194"/>
+            <geom name="XMC7-R850-W4X3B4//unnamed_geom_4" class="XMC7-R850-W4X3B4/" type="mesh" contype="0" conaffinity="0" group="1" density="0" mesh="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link2" rgba="1 1 1 1"/>
+            <geom name="XMC7-R850-W4X3B4//unnamed_geom_5" class="XMC7-R850-W4X3B4/" type="mesh" mesh="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link2" rgba="1 1 1 1"/>
+            <body name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link3" pos="0 0 0.48999999999999999">
+              <inertial pos="-1.2e-05 -0.044248999999999997 0.048945000000000002" quat="0.93084800000000001 0.36540699999999998 6.7901300000000007e-05 -0.00031246699999999997" mass="2.8719999999999999" diaginertia="0.020899600000000001 0.0189176 0.0062950599999999999"/>
+              <joint name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_joint_3" class="XMC7-R850-W4X3B4/" pos="0 0 0" axis="0 -1 0" range="-6.2831999999999999 6.2831999999999999" actuatorfrcrange="-102 102"/>
+              <geom name="XMC7-R850-W4X3B4//unnamed_geom_6" class="XMC7-R850-W4X3B4/" type="mesh" contype="0" conaffinity="0" group="1" density="0" mesh="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link3" rgba="1 1 1 1"/>
+              <geom name="XMC7-R850-W4X3B4//unnamed_geom_7" class="XMC7-R850-W4X3B4/" type="mesh" mesh="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link3" rgba="1 1 1 1"/>
+              <body name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link4" pos="0 0 0.35999999999999999">
+                <inertial pos="2.4000000000000001e-05 0.018331 -0.086516999999999997" quat="0.99636800000000003 0.085152599999999995 2.7683099999999999e-05 -0.00023687" mass="2.823" diaginertia="0.031668200000000001 0.031056799999999999 0.0049371800000000002"/>
+                <joint name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_joint_4" class="XMC7-R850-W4X3B4/" pos="0 0 0" axis="0 0 1" range="-6.2831999999999999 6.2831999999999999" actuatorfrcrange="-66 66"/>
+                <geom name="XMC7-R850-W4X3B4//unnamed_geom_8" class="XMC7-R850-W4X3B4/" type="mesh" contype="0" conaffinity="0" group="1" density="0" mesh="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link4" rgba="1 1 1 1"/>
+                <geom name="XMC7-R850-W4X3B4//unnamed_geom_9" class="XMC7-R850-W4X3B4/" type="mesh" mesh="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link4" rgba="1 1 1 1"/>
+                <body name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link5" pos="0 -0.14999999999999999 0.0040000000000000001">
+                  <inertial pos="-4.3000000000000002e-05 -0.031099000000000002 0.014133" quat="0.86820799999999998 0.49619799999999997 -0.00136101 0.00083388199999999998" mass="2.3399999999999999" diaginertia="0.0095336599999999994 0.0075082600000000001 0.0052281200000000002"/>
+                  <joint name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_joint_5" class="XMC7-R850-W4X3B4/" pos="0 0 0" axis="0 -1 0" range="-6.2831999999999999 6.2831999999999999" actuatorfrcrange="-66 66"/>
+                  <geom name="XMC7-R850-W4X3B4//unnamed_geom_10" class="XMC7-R850-W4X3B4/" type="mesh" contype="0" conaffinity="0" group="1" density="0" mesh="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link5" rgba="1 1 1 1"/>
+                  <geom name="XMC7-R850-W4X3B4//unnamed_geom_11" class="XMC7-R850-W4X3B4/" type="mesh" mesh="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link5" rgba="1 1 1 1"/>
+                  <body name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link6" pos="0 0 0.123">
+                    <inertial pos="9.9999999999999995e-07 -0.00020100000000000001 -0.049301999999999999" quat="0.70127600000000001 -0.0020745999999999998 0.0022252499999999998 0.71288399999999996" mass="1.1419999999999999" diaginertia="0.00218834 0.0021774300000000002 0.0012511899999999999"/>
+                    <joint name="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_joint_6" class="XMC7-R850-W4X3B4/" pos="0 0 0" axis="0 0 1" range="-6.2831999999999999 6.2831999999999999" actuatorfrcrange="-66 66"/>
+                    <geom name="XMC7-R850-W4X3B4//unnamed_geom_12" class="XMC7-R850-W4X3B4/" type="mesh" contype="0" conaffinity="0" group="1" density="0" mesh="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link6" rgba="1 1 1 1"/>
+                    <geom name="XMC7-R850-W4X3B4//unnamed_geom_13" class="XMC7-R850-W4X3B4/" type="mesh" mesh="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link6" rgba="1 1 1 1"/>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <contact>
+    <exclude name="XMC7-R850-W4X3B4//unnamed_contact_0" body1="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_base" body2="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_link1"/>
+  </contact>
+  <actuator>
+    <position name="XMC7-R850-W4X3B4/xmc7_position_1" class="XMC7-R850-W4X3B4/" ctrlrange="-6.2831999999999999 6.2831999999999999" ctrllimited="true" forcelimited="true" forcerange="-100 100" gear="1" joint="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_joint_1" kp="100" kv="20"/>
+    <position name="XMC7-R850-W4X3B4/xmc7_position_2" class="XMC7-R850-W4X3B4/" ctrlrange="-6.2831999999999999 6.2831999999999999" ctrllimited="true" forcelimited="true" forcerange="-100 100" gear="1" joint="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_joint_2" kp="100" kv="20"/>
+    <position name="XMC7-R850-W4X3B4/xmc7_position_3" class="XMC7-R850-W4X3B4/" ctrlrange="-6.2831999999999999 6.2831999999999999" ctrllimited="true" forcelimited="true" forcerange="-100 100" gear="1" joint="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_joint_3" kp="100" kv="20"/>
+    <position name="XMC7-R850-W4X3B4/xmc7_position_4" class="XMC7-R850-W4X3B4/" ctrlrange="-6.2831999999999999 6.2831999999999999" ctrllimited="true" forcelimited="true" forcerange="-100 100" gear="1" joint="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_joint_4" kp="100" kv="20"/>
+    <position name="XMC7-R850-W4X3B4/xmc7_position_5" class="XMC7-R850-W4X3B4/" ctrlrange="-6.2831999999999999 6.2831999999999999" ctrllimited="true" forcelimited="true" forcerange="-100 100" gear="1" joint="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_joint_5" kp="100" kv="20"/>
+    <position name="XMC7-R850-W4X3B4/xmc7_position_6" class="XMC7-R850-W4X3B4/" ctrlrange="-6.2831999999999999 6.2831999999999999" ctrllimited="true" forcelimited="true" forcerange="-100 100" gear="1" joint="XMC7-R850-W4X3B4/XMC7-R850-W4X3B4_joint_6" kp="100" kv="20"/>
+  </actuator>
+</mujoco>

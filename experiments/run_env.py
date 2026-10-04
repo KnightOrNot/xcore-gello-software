@@ -27,7 +27,7 @@ class Args:
     wrist_camera_port: int = 5000
     base_camera_port: int = 5001
     hostname: str = "127.0.0.1"
-    robot_type: str = None  # only needed for quest agent or spacemouse agent
+    robot_type: Optional[str] = None  # only needed for quest agent or spacemouse agent
     hz: int = 100
     start_joints: Optional[Tuple[float, ...]] = None
 
@@ -140,7 +140,8 @@ def main(args):
             }
             if args.start_joints is None:
                 reset_joints = np.deg2rad(
-                    [0, -90, 90, -90, -90, 0, 0]
+                    # [0, -90, 90, -90, -90, 0, 0]
+                    [0, 0, 0, 0, 0, 0, 0]
                 )  # Change this to your own reset joints
             else:
                 reset_joints = np.array(args.start_joints)
@@ -153,6 +154,10 @@ def main(args):
                 for jnt in np.linspace(curr_joints, reset_joints, steps):
                     env.step(jnt)
                     time.sleep(0.001)
+            if args.start_joints is None:
+                # Resolve the leader's accumulated turns against the follower
+                # after any reset, while keeping its calibrated zero offsets.
+                agent_cfg["start_joints"] = env.get_obs()["joint_positions"].copy()
         elif args.agent == "quest":
             agent_cfg = {
                 "_target_": "gello.agents.quest_agent.SingleArmQuestAgent",

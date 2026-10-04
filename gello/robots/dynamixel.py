@@ -99,6 +99,9 @@ class DynamixelRobot(Robot):
             if gripper_config is not None:
                 new_joint_offsets.append(self._joint_offsets[-1])
             self._joint_offsets = np.array(new_joint_offsets)
+            # The cached position was measured before the turn correction.
+            # Seed smoothing again in the corrected coordinate frame.
+            self._last_pos = None
 
     def num_dofs(self) -> int:
         return len(self._joint_ids)
@@ -121,6 +124,23 @@ class DynamixelRobot(Robot):
             # exponential smoothing
             pos = self._last_pos * (1 - self._alpha) + pos * self._alpha
             self._last_pos = pos
+
+        # debug: log gripper raw angle and normalized value
+        if self.gripper_open_close is not None:
+            if not hasattr(self, "_gripper_debug_counter"):
+                self._gripper_debug_counter = 0
+            self._gripper_debug_counter += 1
+            if self._gripper_debug_counter % 50 == 0:
+                raw_deg = np.rad2deg(
+                    (self._driver.get_joints()[-1] - self._joint_offsets[-1])
+                    * self._joint_signs[-1]
+                )
+                print(
+                    f"[gripper] raw: {raw_deg:6.1f}° | "
+                    f"normalized: {pos[-1]:.3f} | "
+                    f"open={np.rad2deg(self.gripper_open_close[0]):.0f}° "
+                    f"close={np.rad2deg(self.gripper_open_close[1]):.0f}°"
+                )
 
         return pos
 

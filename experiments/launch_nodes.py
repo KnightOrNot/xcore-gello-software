@@ -29,6 +29,57 @@ def launch_robot_server(args: Args):
             xml_path=xml, gripper_xml_path=gripper_xml, port=port, host=args.hostname
         )
         server.serve()
+    elif args.robot == "sim_ur10":
+            MENAGERIE_ROOT: Path = (
+                Path(__file__).parent.parent / "third_party" / "mujoco_menagerie"
+            )
+            xml = MENAGERIE_ROOT / "universal_robots_ur10e" / "ur10e.xml"
+            gripper_xml = MENAGERIE_ROOT / "robotiq_2f85" / "2f85.xml"
+            from gello.robots.sim_robot import MujocoRobotServer
+    
+            server = MujocoRobotServer(
+                xml_path=xml, gripper_xml_path=gripper_xml, port=port, host=args.hostname
+            )
+            server.serve()
+    elif args.robot == "sim_iimt5":
+            from gello.robots.sim_robot import MujocoRobotServer
+            
+            xml = Path(__file__).parent.parent / "third_party" / "iimt5" / "iimt5_scene_position.xml"
+            gripper_xml = None
+            server = MujocoRobotServer(
+                xml_path=xml, gripper_xml_path=None, port=port, host=args.hostname,
+                print_joints=False,
+            )
+            server.serve()
+
+    elif args.robot == "sim_nova2":
+            from gello.robots.sim_robot import MujocoRobotServer
+            
+            xml = Path(__file__).parent.parent / "third_party" / "nova2" / "nova2_position.xml"
+            gripper_xml = None
+            server = MujocoRobotServer(
+                xml_path=xml, gripper_xml_path=None, port=port, host=args.hostname,
+                print_joints=False,
+            )
+            server.serve()
+
+    elif args.robot == "sim_cr7":
+        from gello.robots.sim_robot import MujocoRobotServer
+
+        xml = Path(__file__).resolve().parent.parent / "third_party" / "cr7" / "cr7_scene.xml"
+        if not xml.is_file():
+            raise FileNotFoundError(f"模型不存在：{xml}")
+
+        server = MujocoRobotServer(
+            xml_path=xml,
+            gripper_xml_path=None,
+            port=port,
+            host=args.hostname,
+            arm_dofs=6,
+            print_joints=False,
+        )
+        server.serve()
+
     elif args.robot == "sim_yam":
         MENAGERIE_ROOT: Path = (
             Path(__file__).parent.parent / "third_party" / "mujoco_menagerie"
@@ -37,9 +88,23 @@ def launch_robot_server(args: Args):
         from gello.robots.sim_robot import MujocoRobotServer
 
         server = MujocoRobotServer(
-            xml_path=xml, gripper_xml_path=None, port=port, host=args.hostname
+            xml_path=xml, gripper_xml_path=None, port=port, host=args.hostname,
+            arm_dofs=6, gripper_reverse=True,
         )
         server.serve()
+    elif args.robot == "sim_piper":
+        from gello.robots.sim_robot import MujocoRobotServer
+
+        MENAGERIE_ROOT: Path = (
+            Path(__file__).parent.parent / "third_party" / "mujoco_menagerie"
+        )
+        xml = MENAGERIE_ROOT / "agilex_piper" / "scene.xml"
+        gripper_xml = None
+        server = MujocoRobotServer(
+            xml_path=xml, gripper_xml_path=gripper_xml, port=port, host=args.hostname
+        )
+        server.serve()
+
     elif args.robot == "sim_panda":
         from gello.robots.sim_robot import MujocoRobotServer
 
@@ -52,6 +117,20 @@ def launch_robot_server(args: Args):
             xml_path=xml, gripper_xml_path=gripper_xml, port=port, host=args.hostname
         )
         server.serve()
+
+    elif args.robot == "sim_fr3":
+        from gello.robots.sim_robot import MujocoRobotServer
+
+        MENAGERIE_ROOT: Path = (
+            Path(__file__).parent.parent / "third_party" / "mujoco_menagerie"
+        )
+        xml = MENAGERIE_ROOT / "franka_fr3" / "fr3.xml"
+        gripper_xml = None
+        server = MujocoRobotServer(
+            xml_path=xml, gripper_xml_path=gripper_xml, port=port, host=args.hostname
+        )
+        server.serve()
+
     elif args.robot == "sim_xarm":
         from gello.robots.sim_robot import MujocoRobotServer
 
@@ -62,6 +141,94 @@ def launch_robot_server(args: Args):
         gripper_xml = None
         server = MujocoRobotServer(
             xml_path=xml, gripper_xml_path=gripper_xml, port=port, host=args.hostname
+        )
+        server.serve()
+
+    elif args.robot == "sim_ar5":
+        from gello.robots.sim_robot import MujocoRobotServer
+
+        xml = Path(__file__).parent.parent / "third_party" / "ar5" / "ar5_scene.xml"
+        gripper_xml = None
+        server = MujocoRobotServer(
+            xml_path=xml, gripper_xml_path=gripper_xml, port=port, host=args.hostname,
+            print_joints=True,
+        )
+        server.serve()
+
+    elif args.robot == "sim_ar5r":
+        from gello.robots.sim_robot import MujocoRobotServer
+
+        xml = Path(__file__).parent.parent / "third_party" / "ar5r" / "ar5r_scene.xml"
+        gripper_xml = None
+        server = MujocoRobotServer(
+            xml_path=xml, gripper_xml_path=gripper_xml, port=port, host=args.hostname
+        )
+        server.serve()
+
+    elif args.robot == "sim_cr5":
+        from gello.robots.sim_robot import MujocoRobotServer
+
+        xml = Path(__file__).parent.parent / "third_party" / "cr5" / "cr5_scene.xml"
+        gripper_xml = None
+        server = MujocoRobotServer(
+            xml_path=xml, gripper_xml_path=gripper_xml, port=port, host=args.hostname,
+            arm_dofs=6,  # CR5: 6 arm joints, no gripper
+        )
+        server.serve()
+
+    elif args.robot == "sim_rm65":
+        from gello.robots.sim_robot import MujocoRobotServer
+
+        xml = Path(__file__).parent.parent / "third_party" / "rm65" / "rm65_scene.xml"
+        gripper_xml = None
+        server = MujocoRobotServer(
+            xml_path=xml, gripper_xml_path=gripper_xml, port=port, host=args.hostname,
+            arm_dofs=6,  # RM65: 6 arm joints, no gripper
+        )
+        server.serve()
+
+    elif args.robot == "sim_fr5v6":
+        from gello.robots.sim_robot import MujocoRobotServer
+
+        xml = Path(__file__).parent.parent / "third_party" / "fr5v6" / "fr5v6_scene.xml"
+        gripper_xml = None
+        server = MujocoRobotServer(
+            xml_path=xml, gripper_xml_path=gripper_xml, port=port, host=args.hostname,
+            arm_dofs=6,  # FR5V6: 6 arm joints, no gripper
+        )
+        server.serve()
+
+    elif args.robot == "sim_fr5":
+        # alias: FR5 仿真使用 FR5V6 模型 (frcobot_ros 中 fr5v6 为最新版)
+        from gello.robots.sim_robot import MujocoRobotServer
+
+        xml = Path(__file__).parent.parent / "third_party" / "fr5v6" / "fr5v6_scene.xml"
+        gripper_xml = None
+        server = MujocoRobotServer(
+            xml_path=xml, gripper_xml_path=gripper_xml, port=port, host=args.hostname,
+            arm_dofs=6,  # FR5V6: 6 arm joints, no gripper
+        )
+        server.serve()
+
+    elif args.robot == "sim_rizon4":
+        from gello.robots.sim_robot import MujocoRobotServer
+
+        xml = Path(__file__).parent.parent / "third_party" / "rizon4" / "rizon4_scene_position.xml"
+        gripper_xml = None
+        server = MujocoRobotServer(
+            xml_path=xml, gripper_xml_path=gripper_xml, port=port, host=args.hostname,
+            arm_dofs=7,  # Rizon4: 7 arm joints, no gripper
+        )
+        server.serve()
+
+    elif args.robot == "sim_lebailm3":
+        from gello.robots.sim_robot import MujocoRobotServer
+
+        xml = Path(__file__).parent.parent / "third_party" / "lebai_lm3" / "lebai_lm3_scene.xml"
+        gripper_xml = None
+        server = MujocoRobotServer(
+            xml_path=xml, gripper_xml_path=gripper_xml, port=port, host=args.hostname,
+            arm_dofs=6,  # Lebai LM3: 6 arm joints, no gripper
         )
         server.serve()
 
@@ -94,7 +261,7 @@ def launch_robot_server(args: Args):
 
         else:
             raise NotImplementedError(
-                f"Robot {args.robot} not implemented, choose one of: sim_ur, xarm, ur, bimanual_ur, none"
+                f"Robot {args.robot} not implemented, choose one of: sim_ur, sim_yam, sim_panda, sim_fr3, sim_xarm, sim_ar5, sim_ar5r, sim_cr5, sim_rm65, sim_fr5v6, sim_rizon4, sim_marvin, sim_lebailm3, xarm, ur, panda, bimanual_ur, yam, none"
             )
         server = ZMQServerRobot(robot, port=port, host=args.hostname)
         print(f"Starting robot server on port {port}")

@@ -22,8 +22,8 @@ class DynamixelRobotConfig:
     This will be different for each arm design. Refernce the examples below for the correct signs for your robot.
     """
 
-    gripper_config: Tuple[int, int, int]
-    """The gripper config of GELLO. This is a tuple of (gripper_joint_id, degrees in open_position, degrees in closed_position)."""
+    gripper_config: Optional[Tuple[int, int, int]] = None
+    """The gripper config of GELLO. This is a tuple of (gripper_joint_id, degrees in open_position, degrees in closed_position). Set to None for robots without a gripper."""
 
     def __post_init__(self):
         assert len(self.joint_ids) == len(self.joint_offsets)
@@ -59,24 +59,149 @@ PORT_CONFIG_MAP: Dict[str, DynamixelRobotConfig] = {
         joint_signs=(1, -1, 1, 1, 1, -1, 1),
         gripper_config=(8, 195, 152),
     ),
+
+    #Piper
+    "/dev/serial/by-id/usb-ROBOTIS_OpenRB-150_85CE3ABA503059384C2E3120FF070B32-if00": DynamixelRobotConfig(
+        joint_ids=(1, 2, 3, 4, 5, 6),
+        joint_offsets=(
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            1 * np.pi / 2,
+        ),
+        joint_signs=(1, 1, 1, 1, -1, 1),
+        gripper_config=(7, 165, 123),
+    ),
+
+    # FR3
+    "/dev/serial/by-id/usb-ROBOTIS_OpenRB-150_85CE3ABA503059384C2E3120FF070B32-if00": DynamixelRobotConfig(
+        joint_ids=(1, 2, 3, 4, 5, 6, 7),
+        joint_offsets=(
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            1 * np.pi / 2,
+            2 * np.pi / 2,
+            1 * np.pi / 2,
+            3 * np.pi / 2,
+        ),
+        joint_signs=(1, 1, 1, 1, 1, -1, 1),
+        gripper_config=(8, 165, 123),
+    ),
+
+     # AR5 left
+        "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTBHZC6C-if00-port0": DynamixelRobotConfig(
+            joint_ids=(1, 2, 3, 4, 5, 6, 7),
+            joint_offsets=(
+                2 * np.pi / 2,  # J1: π (180°)
+                2 * np.pi / 2,  # J2: π (180°)
+                2 * np.pi / 2,  # J3: π (180°)
+                3 * np.pi / 2,  # J4: 3π/2 (270°) 
+                2 * np.pi / 2,  # J5: π (180°)
+                2 * np.pi / 2,  # J6: π (180°)
+                2 * np.pi / 2,  # J7: π (180°)
+            ),
+            joint_signs=(1, 1, 1, -1, 1, 1, 1),  # J4 sign 反向
+            #gripper_config=(8, 165, 123),
+        ),
+
+        # AR5 right
+        "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTBA1G9M-if00-port0": DynamixelRobotConfig(
+            joint_ids=(1, 2, 3, 4, 5, 6, 7),
+            joint_offsets=(
+                2 * np.pi / 2,  # J1: π (180°)
+                2 * np.pi / 2,  # J2: π (180°)
+                2 * np.pi / 2,  # J3: π (180°)
+                3 * np.pi / 2,  # J4: 3π/2 (270°) 
+                2 * np.pi / 2,  # J5: π (180°)
+                2 * np.pi / 2,  # J6: π (180°)
+                2 * np.pi / 2,  # J7: π (180°)
+            ),
+            joint_signs=(1, 1, 1, -1, 1, 1, 1),  # J4 sign 反向
+            #gripper_config=(8, 165, 123),
+        ),
+
     # yam
-    "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTA2U4GA-if00-port0": DynamixelRobotConfig(
+    "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTBTCIGC-if00-port0": DynamixelRobotConfig(
         joint_ids=(1, 2, 3, 4, 5, 6),
         joint_offsets=[
-            0 * np.pi,
             2 * np.pi / 2,
-            4 * np.pi / 2,
-            6 * np.pi / 6,
-            5 * np.pi / 3,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
             2 * np.pi / 2,
         ],
         joint_signs=(1, -1, -1, -1, 1, 1),
-        gripper_config=(
-            7,
-            -30,
-            24,
-        ),  # Reversed: now starts open (-30) and closes on press (24)
+        gripper_config=(7, 200, 157),  # calibrated: open(rest)≈200°, close(squeezed)≈157°
     ),
+
+    # UR10e
+    "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT7WBEIA-if00-port0": DynamixelRobotConfig(
+        joint_ids=(1, 2, 3, 4, 5, 6),
+        joint_offsets=(
+            2 * np.pi / 2,
+            2 * np.pi / 2 ,
+            2 * np.pi / 2 ,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+        ),
+        joint_signs=(1, 1, -1, 1, 1, 1),
+        gripper_config=(7, 20, -22),
+    ),
+
+    #iimt5
+    "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTB5RUGG-if00-port0": DynamixelRobotConfig(
+        joint_ids=(1, 2, 3, 4, 5, 6),
+        joint_offsets=(
+            3 * np.pi / 2,
+            3 * np.pi / 2 ,
+            2 * np.pi / 2 ,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+        ),
+        joint_signs=(1, 1, -1, 1, 1, 1),
+        gripper_config=None #(7, 198, 156),
+    ),
+
+
+    #CR7
+    "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTB4C7PQ-if00-port0": DynamixelRobotConfig(
+        joint_ids=(1, 2, 3, 4, 5, 6),
+        joint_offsets=(
+            3 * np.pi / 2,
+            2 * np.pi / 2 ,
+            2 * np.pi / 2 ,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            -2 * np.pi / 2,
+        ),
+        joint_signs=(1, 1, 1, 1, 1, 1),
+        gripper_config=None #(7, 194.8, 153),
+    ),
+
+
+    #nova2
+    "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTB5RUGG-if00-port0": DynamixelRobotConfig(
+        joint_ids=(1, 2, 3, 4, 5, 6),
+        joint_offsets=(
+            3 * np.pi / 2,
+            2 * np.pi / 2 ,
+            2 * np.pi / 2 ,
+            1 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+        ),
+        joint_signs=(1, 1, -1, 1, 1, 1),
+        gripper_config=None #(7, 198, 156),
+    ),
+
+
+
     # Left UR
     "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FT7WBEIA-if00-port0": DynamixelRobotConfig(
         joint_ids=(1, 2, 3, 4, 5, 6),
@@ -105,6 +230,52 @@ PORT_CONFIG_MAP: Dict[str, DynamixelRobotConfig] = {
         joint_signs=(1, 1, -1, 1, 1, 1),
         gripper_config=(7, 286, 248),
     ),
+    # FR5
+    "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTBNWWUF-if00-port0": DynamixelRobotConfig(
+        joint_ids=(1, 2, 3, 4, 5, 6),
+        joint_offsets=(
+            3 * np.pi / 2,
+            3 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            1 * np.pi / 2,
+        ),
+        joint_signs=(1, 1, -1, 1, 1, 1),
+        gripper_config=None #(7, 20, -22),
+    ),
+    # lebai_lm3
+    "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTB7WPRN-if00-port0": DynamixelRobotConfig(
+        joint_ids=(1, 2, 3, 4, 5, 6),
+        joint_offsets=(
+            1 * np.pi / 2,
+            3 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+        ),
+        joint_signs=(1, 1, -1, 1, 1, 1),
+        gripper_config=None #(7, 20, -22),
+    ),
+    #feixi
+    #"/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTB8X5NZ-if00-port0": DynamixelRobotConfig(
+    "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTC2K1S1-if00-port0": DynamixelRobotConfig(
+        joint_ids=(1, 2, 3, 4, 5, 6, 7),
+        joint_offsets=(
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            2 * np.pi / 2,
+            1 * np.pi / 2,
+        ),
+        joint_signs=(1, 1, 1, 1, 1, 1, 1),
+        gripper_config=None #(7, 20, -22),
+    ),
+
+    
 }
 
 

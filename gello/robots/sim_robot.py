@@ -108,6 +108,8 @@ class ZMQRobotServer:
                     result = self._robot.num_dofs()
                 elif method == "get_joint_state":
                     result = self._robot.get_joint_state()
+                elif method == "get_ctrl":
+                    result = self._robot.get_ctrl()
                 elif method == "command_joint_state":
                     result = self._robot.command_joint_state(**args)
                 elif method == "get_observations":
@@ -138,8 +140,24 @@ class MujocoRobotServer:
         host: str = "127.0.0.1",
         port: int = 5556,
         print_joints: bool = False,
+        arm_dofs: Optional[int] = None,
+        gripper_reverse: bool = False,
     ):
-        self._has_gripper = gripper_xml_path is not None
+        """MuJoCo robot server.
+
+        Args:
+            xml_path: Path to the robot MJCF XML file.
+            gripper_xml_path: Optional path to a separate gripper XML file.
+            host: ZMQ server host.
+            port: ZMQ server port.
+            print_joints: Whether to print joint states to console.
+            arm_dofs: Number of arm joints (excluding gripper). If None,
+                      defaults to num_joints (no gripper). If set to a value
+                      less than total actuators, the remaining actuators are
+                      treated as grippers with [0,1] normalization.
+            gripper_reverse: Invert the gripper [0,1] value before scaling.
+        """
+        self._has_gripper_xml = gripper_xml_path is not None
         arena = build_scene(xml_path, gripper_xml_path)
 
         assets: Dict[str, str] = {}
@@ -158,6 +176,19 @@ class MujocoRobotServer:
 
         self._num_joints = self._model.nu
 
+        # arm_dofs: how many of the actuators are actual arm joints
+        # the rest (if any) are treated as gripper
+        if arm_dofs is None:
+            self._arm_dofs = self._num_joints  # no gripper
+        else:
+            self._arm_dofs = min(arm_dofs, self._num_joints)
+
+        self._has_gripper_joint = self._arm_dofs < self._num_joints
+
+        # Read gripper actuator ctrlrange for proper scaling
+        if self._has_gripper_joint:
+            self._gripper_ctrl_range = self._model.actuator_ctrlrange[-1].copy()
+
         self._joint_state = np.zeros(self._num_joints)
         self._joint_cmd = self._joint_state
 
@@ -165,6 +196,7 @@ class MujocoRobotServer:
         self._zmq_server_thread = ZMQServerThread(self._zmq_server)
 
         self._print_joints = print_joints
+        self._gripper_reverse = gripper_reverse
 
     def num_dofs(self) -> int:
         return self._num_joints
@@ -172,17 +204,27 @@ class MujocoRobotServer:
     def get_joint_state(self) -> np.ndarray:
         return self._joint_state
 
+    def get_ctrl(self) -> np.ndarray:
+        return self._joint_cmd
+
     def command_joint_state(self, joint_state: np.ndarray) -> None:
         assert len(joint_state) == self._num_joints, (
             f"Expected joint state of length {self._num_joints}, "
             f"got {len(joint_state)}."
         )
-        if self._has_gripper:
-            _joint_state = joint_state.copy()
+        _joint_state = joint_state.copy()
+        if self._has_gripper_xml:
+            # Separate gripper XML (e.g. Robotiq 2F-85): scale [0,1] → [0,255]
             _joint_state[-1] = _joint_state[-1] * 255
-            self._joint_cmd = _joint_state
-        else:
-            self._joint_cmd = joint_state.copy()
+        elif self._has_gripper_joint:
+            # Gripper joint embedded in arm XML: scale [0,1] → ctrlrange
+            g_val = _joint_state[-1]
+            if self._gripper_reverse:
+                g_val = 1.0 - g_val
+            g_min, g_max = self._gripper_ctrl_range
+            _joint_state[-1] = g_val * (g_max - g_min) + g_min
+        # else: no gripper at all (pure arm), pass through as-is
+        self._joint_cmd = _joint_state
 
     def freedrive_enabled(self) -> bool:
         return True
@@ -207,47 +249,62 @@ class MujocoRobotServer:
             ee_pos = np.zeros(3)
             ee_quat = np.zeros(4)
             ee_quat[0] = 1
-        gripper_pos = self._data.qpos.copy()[self._num_joints - 1]
+        if self._has_gripper_joint or self._has_gripper_xml:
+            gripper_pos = self._data.qpos.copy()[self._num_joints - 1]
+        else:
+            gripper_pos = 0.0
         return {
             "joint_positions": joint_positions,
             "joint_velocities": joint_velocities,
             "ee_pos_quat": np.concatenate([ee_pos, ee_quat]),
-            "gripper_position": gripper_pos,
+            "gripper_position": np.array(gripper_pos),
         }
 
     def serve(self) -> None:
         # start the zmq server
         self._zmq_server_thread.start()
         with mujoco.viewer.launch_passive(self._model, self._data) as viewer:
-            while viewer.is_running():
-                step_start = time.time()
+            # Track wall-clock time to maintain real-time simulation speed
+            # despite viewer.sync() blocking at display refresh rate (~60Hz).
+            wall_start = time.time()
+            sim_start = self._data.time
+            frame_count = 0
+            total_steps = 0
 
-                # mj_step can be replaced with code that also evaluates
-                # a policy and applies a control signal before stepping the physics.
-                self._data.ctrl[:] = self._joint_cmd
-                # self._data.qpos[:] = self._joint_cmd
-                mujoco.mj_step(self._model, self._data)
+            while viewer.is_running():
+                # Advance simulation to catch up with elapsed wall-clock time.
+                # viewer.sync() blocks at vsync (~16ms), so we need multiple
+                # physics steps per frame to maintain 1x real-time speed.
+                elapsed_wall = time.time() - wall_start
+                target_sim_time = sim_start + elapsed_wall
+
+                steps_this_frame = 0
+                while self._data.time < target_sim_time:
+                    self._data.ctrl[:] = self._joint_cmd
+                    mujoco.mj_step(self._model, self._data)
+                    steps_this_frame += 1
+
+                total_steps += steps_this_frame
+                frame_count += 1
+
                 self._joint_state = self._data.qpos.copy()[: self._num_joints]
 
-                if self._print_joints:
-                    print(self._joint_state)
+                if self._print_joints and frame_count % 60 == 0:
+                    avg_steps = total_steps / frame_count
+                    sim_rate = avg_steps * self._model.opt.timestep * frame_count / max(elapsed_wall, 0.001)
+                    print(f"[SIM] frame={frame_count} steps_per_frame={steps_this_frame} "
+                          f"avg_steps={avg_steps:.1f} sim_rate={sim_rate:.2f}x "
+                          f"wall={elapsed_wall:.1f}s sim={self._data.time:.1f}s "
+                          f"DIFF_J1={self._data.ctrl[0] - self._joint_state[0]:.3f}")
 
                 # Example modification of a viewer option: toggle contact points every two seconds.
                 with viewer.lock():
-                    # TODO remove?
                     viewer.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = int(
                         self._data.time % 2
                     )
 
                 # Pick up changes to the physics state, apply perturbations, update options from GUI.
                 viewer.sync()
-
-                # Rudimentary time keeping, will drift relative to wall clock.
-                time_until_next_step = self._model.opt.timestep - (
-                    time.time() - step_start
-                )
-                if time_until_next_step > 0:
-                    time.sleep(time_until_next_step)
 
     def stop(self) -> None:
         self._zmq_server_thread.join()
