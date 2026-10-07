@@ -51,14 +51,28 @@ def attach_hand_to_arm(
     attachment_site.attach(hand_mjcf)
 
 
-def build_scene(robot_xml_path: str, gripper_xml_path: Optional[str] = None):
+def build_scene(
+    robot_xml_path: str,
+    gripper_xml_path: Optional[str] = None,
+    gripper_body: Optional[str] = None,
+):
     # assert robot_xml_path.endswith(".xml")
 
     arena = mjcf.RootElement()
     arm_simulate = mjcf.from_path(robot_xml_path)
+    if gripper_body is not None:
+        # Preserve the CR7 position-model timestep, integrator and zero-gravity setup.
+        for name, value in arm_simulate.option.get_attributes().items():
+            setattr(arena.option, name, value)
     # arm_copy = mjcf.from_path(xml_path)
 
     if gripper_xml_path is not None:
+        if gripper_body is not None:
+            body = arm_simulate.find("body", gripper_body)
+            if body is None:
+                raise ValueError(f"Gripper mounting body not found: {gripper_body}")
+            if arm_simulate.find("site", "attachment_site") is None:
+                body.add("site", name="attachment_site", pos=[0, 0, 0], size=[0.005])
         # attach gripper to the robot at "attachment_site"
         gripper_simulate = mjcf.from_path(gripper_xml_path)
         attach_hand_to_arm(arm_simulate, gripper_simulate)
@@ -128,6 +142,8 @@ class ZMQRobotServer:
 
     def stop(self) -> None:
         self._stop_event.set()
+
+    def close(self) -> None:
         self._socket.close()
         self._context.term()
 
@@ -142,6 +158,8 @@ class MujocoRobotServer:
         print_joints: bool = False,
         arm_dofs: Optional[int] = None,
         gripper_reverse: bool = False,
+        gripper_body: Optional[str] = None,
+        normalize_gripper: bool = False,
     ):
         """MuJoCo robot server.
 
@@ -158,7 +176,7 @@ class MujocoRobotServer:
             gripper_reverse: Invert the gripper [0,1] value before scaling.
         """
         self._has_gripper_xml = gripper_xml_path is not None
-        arena = build_scene(xml_path, gripper_xml_path)
+        arena = build_scene(xml_path, gripper_xml_path, gripper_body)
 
         assets: Dict[str, str] = {}
         for asset in arena.asset.all_children():
@@ -167,10 +185,6 @@ class MujocoRobotServer:
                 assets[f.get_vfs_filename()] = asset.file.contents
 
         xml_string = arena.to_xml_string()
-        # save xml_string to file
-        with open("arena.xml", "w") as f:
-            f.write(xml_string)
-
         self._model = mujoco.MjModel.from_xml_string(xml_string, assets)
         self._data = mujoco.MjData(self._model)
 
@@ -184,10 +198,25 @@ class MujocoRobotServer:
             self._arm_dofs = min(arm_dofs, self._num_joints)
 
         self._has_gripper_joint = self._arm_dofs < self._num_joints
+        self._normalize_gripper = normalize_gripper
+        self._gripper_reverse = gripper_reverse
 
         # Read gripper actuator ctrlrange for proper scaling
         if self._has_gripper_joint:
             self._gripper_ctrl_range = self._model.actuator_ctrlrange[-1].copy()
+        if normalize_gripper:
+            if not self._has_gripper_joint:
+                raise ValueError(
+                    "Normalized gripper feedback requires a gripper actuator"
+                )
+            if not np.all(self._model.actuator_trntype == mujoco.mjtTrn.mjTRN_JOINT):
+                raise ValueError("Normalized feedback requires joint-driven actuators")
+            joint_ids = self._model.actuator_trnid[:, 0]
+            self._qpos_addresses = self._model.jnt_qposadr[joint_ids]
+            self._qvel_addresses = self._model.jnt_dofadr[joint_ids]
+            self._gripper_joint_range = self._model.jnt_range[joint_ids[-1]].copy()
+            if self._gripper_joint_range[1] <= self._gripper_joint_range[0]:
+                raise ValueError("Gripper joint range must have positive travel")
 
         self._joint_state = np.zeros(self._num_joints)
         self._joint_cmd = self._joint_state
@@ -202,7 +231,23 @@ class MujocoRobotServer:
         return self._num_joints
 
     def get_joint_state(self) -> np.ndarray:
-        return self._joint_state
+        return self._state_from_data()[0]
+
+    def _state_from_data(self):
+        if not self._normalize_gripper:
+            return (
+                self._data.qpos[: self._num_joints].copy(),
+                self._data.qvel[: self._num_joints].copy(),
+            )
+        positions = self._data.qpos[self._qpos_addresses].copy()
+        velocities = self._data.qvel[self._qvel_addresses].copy()
+        low, high = self._gripper_joint_range
+        positions[-1] = np.clip((positions[-1] - low) / (high - low), 0, 1)
+        velocities[-1] /= high - low
+        if self._gripper_reverse:
+            positions[-1] = 1.0 - positions[-1]
+            velocities[-1] *= -1
+        return positions, velocities
 
     def get_ctrl(self) -> np.ndarray:
         return self._joint_cmd
@@ -213,16 +258,16 @@ class MujocoRobotServer:
             f"got {len(joint_state)}."
         )
         _joint_state = joint_state.copy()
-        if self._has_gripper_xml:
-            # Separate gripper XML (e.g. Robotiq 2F-85): scale [0,1] → [0,255]
-            _joint_state[-1] = _joint_state[-1] * 255
-        elif self._has_gripper_joint:
+        if self._has_gripper_joint:
             # Gripper joint embedded in arm XML: scale [0,1] → ctrlrange
-            g_val = _joint_state[-1]
+            g_val = np.clip(_joint_state[-1], 0.0, 1.0)
             if self._gripper_reverse:
                 g_val = 1.0 - g_val
             g_min, g_max = self._gripper_ctrl_range
             _joint_state[-1] = g_val * (g_max - g_min) + g_min
+        elif self._has_gripper_xml:
+            # Legacy callers that do not pass arm_dofs use a Robotiq 0..255 control.
+            _joint_state[-1] = _joint_state[-1] * 255
         # else: no gripper at all (pure arm), pass through as-is
         self._joint_cmd = _joint_state
 
@@ -233,8 +278,7 @@ class MujocoRobotServer:
         pass
 
     def get_observations(self) -> Dict[str, np.ndarray]:
-        joint_positions = self._data.qpos.copy()[: self._num_joints]
-        joint_velocities = self._data.qvel.copy()[: self._num_joints]
+        joint_positions, joint_velocities = self._state_from_data()
         ee_site = "attachment_site"
         try:
             ee_pos = self._data.site_xpos.copy()[
@@ -250,7 +294,7 @@ class MujocoRobotServer:
             ee_quat = np.zeros(4)
             ee_quat[0] = 1
         if self._has_gripper_joint or self._has_gripper_xml:
-            gripper_pos = self._data.qpos.copy()[self._num_joints - 1]
+            gripper_pos = joint_positions[-1]
         else:
             gripper_pos = 0.0
         return {
@@ -291,11 +335,18 @@ class MujocoRobotServer:
 
                 if self._print_joints and frame_count % 60 == 0:
                     avg_steps = total_steps / frame_count
-                    sim_rate = avg_steps * self._model.opt.timestep * frame_count / max(elapsed_wall, 0.001)
-                    print(f"[SIM] frame={frame_count} steps_per_frame={steps_this_frame} "
-                          f"avg_steps={avg_steps:.1f} sim_rate={sim_rate:.2f}x "
-                          f"wall={elapsed_wall:.1f}s sim={self._data.time:.1f}s "
-                          f"DIFF_J1={self._data.ctrl[0] - self._joint_state[0]:.3f}")
+                    sim_rate = (
+                        avg_steps
+                        * self._model.opt.timestep
+                        * frame_count
+                        / max(elapsed_wall, 0.001)
+                    )
+                    print(
+                        f"[SIM] frame={frame_count} steps_per_frame={steps_this_frame} "
+                        f"avg_steps={avg_steps:.1f} sim_rate={sim_rate:.2f}x "
+                        f"wall={elapsed_wall:.1f}s sim={self._data.time:.1f}s "
+                        f"DIFF_J1={self._data.ctrl[0] - self._joint_state[0]:.3f}"
+                    )
 
                 # Example modification of a viewer option: toggle contact points every two seconds.
                 with viewer.lock():
@@ -307,7 +358,16 @@ class MujocoRobotServer:
                 viewer.sync()
 
     def stop(self) -> None:
-        self._zmq_server_thread.join()
+        server = getattr(self, "_zmq_server", None)
+        if server is None:
+            return
+        server.stop()
+        thread = getattr(self, "_zmq_server_thread", None)
+        if thread is not None and thread.is_alive():
+            thread.join(timeout=2.0)
+        if thread is None or not thread.is_alive():
+            server.close()
+            self._zmq_server = None
 
     def __del__(self) -> None:
         self.stop()

@@ -5,6 +5,7 @@ import sys
 
 
 COMMANDS = {
+    "read": "read",
     "launch-nodes": "launch_nodes",
     "run-env": "run_env",
     "launch-yaml": "launch_yaml",

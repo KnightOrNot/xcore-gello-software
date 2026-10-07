@@ -1,0 +1,31 @@
+<mujoco model="cr7_parallel_gripper">
+  <compiler angle="radian"/>
+  <worldbody>
+    <body name="palm">
+      <!-- Visualization proxy: 85 mm maximum gap, not a detailed Robotiq model. -->
+      <geom name="palm_geom" type="cylinder" pos="0 0 0.025" size="0.028 0.025"
+            rgba="0.2 0.2 0.23 1" contype="0" conaffinity="0"/>
+      <geom name="finger_rail" type="box" pos="0 0 0.048" size="0.055 0.018 0.006"
+            rgba="0.2 0.2 0.23 1" contype="0" conaffinity="0"/>
+      <body name="left_finger" pos="0.0475 0 0.05">
+        <joint name="left_slide" type="slide" axis="-1 0 0" limited="true"
+               range="0 0.0425" damping="1"/>
+        <geom type="box" pos="0 0 0.0325" size="0.005 0.012 0.0325"
+              rgba="0.65 0.65 0.7 1" contype="0" conaffinity="0"/>
+      </body>
+      <body name="right_finger" pos="-0.0475 0 0.05">
+        <joint name="right_slide" type="slide" axis="1 0 0" limited="true"
+               range="0 0.0425" damping="1"/>
+        <geom type="box" pos="0 0 0.0325" size="0.005 0.012 0.0325"
+              rgba="0.65 0.65 0.7 1" contype="0" conaffinity="0"/>
+      </body>
+    </body>
+  </worldbody>
+  <equality>
+    <joint joint1="right_slide" joint2="left_slide" polycoef="0 1 0 0 0"/>
+  </equality>
+  <actuator>
+    <position name="closure" joint="left_slide" kp="200" kv="5"
+              ctrllimited="true" ctrlrange="0 0.0425" forcelimited="true" forcerange="-10 10"/>
+  </actuator>
+</mujoco>

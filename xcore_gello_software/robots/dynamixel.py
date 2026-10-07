@@ -26,8 +26,18 @@ class DynamixelRobot(Robot):
         )
 
         print(f"attempting to connect to port: {port}")
+        self._raw_gripper_degrees = None
         self.gripper_open_close: Optional[Tuple[float, float]]
         if gripper_config is not None:
+            if (
+                not np.isfinite(gripper_config[1:]).all()
+                or gripper_config[1] == gripper_config[2]
+            ):
+                raise ValueError(
+                    "Gripper open/closed angles must be finite and different"
+                )
+            if gripper_config[0] in joint_ids:
+                raise ValueError("Gripper ID must differ from the arm joint IDs")
             assert joint_offsets is not None
             assert joint_signs is not None
 
@@ -62,15 +72,16 @@ class DynamixelRobot(Robot):
             f"joint_offsets: {len(self._joint_offsets)}"
         )
         assert len(self._joint_ids) == len(self._joint_signs), (
-            f"joint_ids: {len(self._joint_ids)}, "
-            f"joint_signs: {len(self._joint_signs)}"
+            f"joint_ids: {len(self._joint_ids)}, joint_signs: {len(self._joint_signs)}"
         )
-        assert np.all(
-            np.abs(self._joint_signs) == 1
-        ), f"joint_signs: {self._joint_signs}"
+        assert np.all(np.abs(self._joint_signs) == 1), (
+            f"joint_signs: {self._joint_signs}"
+        )
 
         if real:
-            self._driver = DynamixelDriver(joint_ids, port=port, baudrate=baudrate)
+            self._driver = DynamixelDriver(
+                joint_ids, port=port, baudrate=baudrate, use_fake_fallback=False
+            )
             self._driver.set_torque_mode(False)
         else:
             self._driver = FakeDynamixelDriver(joint_ids)
@@ -81,7 +92,11 @@ class DynamixelRobot(Robot):
         if start_joints is not None:
             # loop through all joints and add +- 2pi to the joint offsets to get the closest to start joints
             new_joint_offsets = []
-            current_joints = self.get_joint_state()
+            try:
+                current_joints = self.get_joint_state()
+            except BaseException:
+                self.close()
+                raise
             assert current_joints.shape == start_joints.shape
             if gripper_config is not None:
                 current_joints = current_joints[:-1]
@@ -111,6 +126,7 @@ class DynamixelRobot(Robot):
         assert len(pos) == self.num_dofs()
 
         if self.gripper_open_close is not None:
+            self._raw_gripper_degrees = float(np.rad2deg(pos[-1]))
             # map pos to [0, 1]
             g_pos = (pos[-1] - self.gripper_open_close[0]) / (
                 self.gripper_open_close[1] - self.gripper_open_close[0]
@@ -143,6 +159,24 @@ class DynamixelRobot(Robot):
                 )
 
         return pos
+
+    def get_gripper_state(self):
+        """Return the latest trigger reading, without another serial transaction."""
+        if self.gripper_open_close is None:
+            return None
+        if self._last_pos is None:
+            self.get_joint_state()
+        closure = float(self._last_pos[-1])
+        return {
+            "raw_degrees": self._raw_gripper_degrees,
+            "closure": closure,
+            "openness": 1.0 - closure,
+        }
+
+    def close(self):
+        close = getattr(self._driver, "close", None)
+        if close is not None:
+            close()
 
     def command_joint_state(self, joint_state: np.ndarray) -> None:
         self._driver.set_joints((joint_state + self._joint_offsets).tolist())

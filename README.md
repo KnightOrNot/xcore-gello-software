@@ -64,7 +64,7 @@ python scripts/launch.py
 ```bash
 xcore-gello-software --help
 xcore-gello-software launch-nodes --robot sim_cr7
-xcore-gello-software run-env --agent gello
+xcore-gello-software run-env --agent gello --gripper-only
 python experiments/launch_nodes.py --robot sim_cr7
 ```
 
@@ -73,6 +73,63 @@ Python 包名为 `xcore_gello_software`；YAML 的 `_target_` 使用相同名称
 CR7 仿真需要现场准备的 `third_party/cr7/cr7_scene.xml` 与模型资源；
 原有本地资源无需移动。其他仿真可按需要初始化 Menagerie。
 真机六轴跟随使用 xcore-controller 的 `start_gello_follow.sh`。
+
+
+### CR7 主臂夹爪读取与仿真
+
+FTB4C7PQ 配置现在读取 ID 1～6 的关节角和 ID 7 的夹爪扳机。
+输出为 `[q1, q2, q3, q4, q5, q6, closure]`：
+前六项为弧度，`closure` 为 0～1（0 全开、1 全闭）。
+默认扳机角度沿用原配置注释中的全开 194.8°、全闭 153°；它们尚需本机实测确认。
+
+先读取主臂，不需要启动从臂或夹爪服务器：
+
+```bash
+.venv/bin/xcore-gello-software read --samples 20
+```
+
+终端将显示 `gripper_raw_deg`、`closure` 与 `openness`。
+正常工作时松开扳机接近 `closure=0`，握紧接近 `closure=1`。
+如开合方向或行程不符，按观察到的原始角度覆盖两个端点，例如：
+
+```bash
+.venv/bin/xcore-gello-software read --gripper-open-deg 194.8 --gripper-close-deg 153
+```
+
+读取结束后，在本项目目录打开两个终端：
+
+```bash
+# 终端 1：MuJoCo CR7 + 简化平行夹爪
+.venv/bin/xcore-gello-software launch-nodes --robot sim_cr7
+```
+
+```bash
+# 终端 2：仅跟随夹爪，保持仿真机械臂当前姿态
+.venv/bin/xcore-gello-software run-env --agent gello --gripper-only \
+  --gello-port /dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTB4C7PQ-if00-port0
+```
+
+需要修改端点时，在 `run-env` 上使用相同的 `--gripper-open-deg` /
+`--gripper-close-deg` 参数。终端会周期显示主臂与仿真的闭合度。
+先 Ctrl+C 停止客户端，再关闭仿真窗口。保持同一串口只有一个读取进程。
+
+仿真有 7 个控制通道、8 个物理关节（6 个机械臂关节和两个联动手指）。
+夹爪最大开口为 85 mm，半闭为 42.5 mm，全闭为 0 mm；用于开合状态预览，
+不代表 Robotiq 2F-85 的精确机构、接触或抓取力学模型。
+默认不需要先将主臂摆到零位；去掉 `--gripper-only` 后才跟随六个机械臂关节，
+此时仍需满足原有初始姿态检查。
+
+仅使用原六轴模式时，两端都关闭夹爪：
+
+```bash
+.venv/bin/xcore-gello-software launch-nodes --robot sim_cr7 --no-with-gripper
+.venv/bin/xcore-gello-software run-env --agent gello --no-read-gripper \
+  --gello-port /dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTB4C7PQ-if00-port0
+```
+
+新增仿真夹爪 XML 随软件提供；CR7 本体仍需要原有 `third_party/cr7` 模型。
+真实 GELLO 读取失败时会报错，不会自动改用假数据；没有收到编码器数据时
+请检查 ID 7 是否存在及串口接线。
 
 ## Hardware Configuration
 

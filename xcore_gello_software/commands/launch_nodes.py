@@ -13,6 +13,8 @@ class Args:
     robot_port: int = 6001
     hostname: str = "127.0.0.1"
     robot_ip: str = "192.168.1.10"
+    with_gripper: bool = True
+    """Include the parallel gripper when launching sim_cr7."""
 
 
 def launch_robot_server(args: Args):
@@ -72,13 +74,21 @@ def launch_robot_server(args: Args):
 
         server = MujocoRobotServer(
             xml_path=xml,
-            gripper_xml_path=None,
+            gripper_xml_path=(
+                Path(__file__).resolve().parents[1] / "robots/assets/cr7_parallel_gripper.xml"
+                if args.with_gripper else None
+            ),
             port=port,
             host=args.hostname,
             arm_dofs=6,
+            gripper_body="XMC7-R850-W4X3B4_link6" if args.with_gripper else None,
+            normalize_gripper=args.with_gripper,
             print_joints=False,
         )
-        server.serve()
+        try:
+            server.serve()
+        finally:
+            server.stop()
 
     elif args.robot == "sim_yam":
         MENAGERIE_ROOT: Path = (

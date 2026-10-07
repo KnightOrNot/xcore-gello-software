@@ -506,7 +506,13 @@ class DynamixelDriver(DynamixelDriverProtocol):
             return self._fake_joint_angles.copy()
 
         # Return a copy of the joint_angles array to avoid race conditions
+        deadline = time.monotonic() + 5.0
         while self._joint_angles is None:
+            if time.monotonic() >= deadline:
+                raise RuntimeError(
+                    f"No position data received for Dynamixel IDs {tuple(self._ids)}; "
+                    "check the connected encoder IDs, including the gripper."
+                )
             time.sleep(0.1)
         _j = self._joint_angles.copy()
         return _j / 2048.0 * np.pi
