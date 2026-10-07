@@ -50,7 +50,7 @@ operating_modes:
 ### Regular Driver
 
 ```python
-from gello.dynamixel.driver import DynamixelDriver
+from xcore_gello_software.dynamixel.driver import DynamixelDriver
 try:
   driver = DynamixelDriver(
       ids=[1, 2, 3], 
@@ -68,7 +68,7 @@ Host serial baudrate is passed by the caller (ROS `baudrate` param / YAML). Fact
 ### Fake Driver for Testing
 
 ```python
-from gello.dynamixel.driver import FakeDynamixelDriver
+from xcore_gello_software.dynamixel.driver import FakeDynamixelDriver
 
 fake_driver = FakeDynamixelDriver(ids=[1, 2, 3], motor_type="xl330")
 ```

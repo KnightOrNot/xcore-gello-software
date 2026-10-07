@@ -1,9 +1,9 @@
 FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
 
-WORKDIR /gello
+WORKDIR /xcore-gello-software
 
 # Set environment variables first (less likely to change)
-ENV PYTHONPATH=/gello:/gello/third_party/oculus_reader/
+ENV PYTHONPATH=/xcore-gello-software:/xcore-gello-software/third_party/oculus_reader/
 
 # Group apt updates and installs together
 RUN apt update && apt install -y \
@@ -18,5 +18,5 @@ RUN apt update && apt install -y \
 RUN echo "alias python=python3" >> ~/.bashrc
 
 # Install Python dependencies
-COPY requirements.txt /gello
+COPY requirements.txt /xcore-gello-software
 RUN pip install -r requirements.txt

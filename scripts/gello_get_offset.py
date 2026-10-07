@@ -7,7 +7,7 @@ from typing import Tuple
 import numpy as np
 import tyro
 
-from gello.dynamixel.driver import DynamixelDriver
+from xcore_gello_software.dynamixel.driver import DynamixelDriver
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 

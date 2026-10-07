@@ -14,7 +14,7 @@ dynamixel:
 arm_teleop:
   # URDF used for creating leader arm dynamics model to compute gravity compensation
   # GELLO-specific path 
-  leader_urdf: "gello/factr/urdf/yam_active_gello/robot.urdf"
+  leader_urdf: "xcore_gello_software/factr/urdf/yam_active_gello/robot.urdf"
   num_arm_joints: 6
   arm_joint_limits_max: [3.14159, 3.14159, 3.14159, 3.14159, 3.14159, 3.14159]
   arm_joint_limits_min: [-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159]
@@ -66,7 +66,7 @@ teleop:
   hz: 30
   wait_for_server_timeout_s: 5.0
   robot:
-    _target_: gello.robots.sim_robot.MujocoRobotServer
+    _target_: xcore_gello_software.robots.sim_robot.MujocoRobotServer
     xml_path: third_party/mujoco_menagerie/i2rt_yam/yam.xml
     gripper_xml_path: null
     host: 127.0.0.1

@@ -1,6 +1,6 @@
 {
   "include": [
-    "gello"
+    "xcore_gello_software"
   ],
   "exclude": [
     "**/node_modules",

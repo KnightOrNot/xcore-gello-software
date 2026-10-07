@@ -1,4 +1,4 @@
-# GELLO: General, Low-Cost, and Intuitive Teleoperation Framework
+# xcore-gello-software: General, Low-Cost, and Intuitive Teleoperation Framework
 
 <p align="center">
   <img src="imgs/title.png" />
@@ -22,8 +22,8 @@ For additional resources:
 ## Quick Start
 
 ```bash
-git clone https://github.com/wuphilipp/gello_software.git
-cd gello_software
+git clone https://github.com/KnightOrNot/xcore-gello-software.git
+cd xcore-gello-software
 ```
 
 ## Installation
@@ -39,11 +39,9 @@ Create and activate a virtual environment:
 ```bash
 uv venv --python 3.11
 source .venv/bin/activate  # Run this every time you open a new shell
-git submodule init
-git submodule update
 uv pip install -r requirements.txt
 uv pip install -e .
-uv pip install -e third_party/DynamixelSDK/python
+uv pip install dynamixel-sdk
 ```
 
 ### Option 2: Docker
@@ -51,13 +49,30 @@ uv pip install -e third_party/DynamixelSDK/python
 Install [Docker](https://docs.docker.com/engine/install/ubuntu/), then:
 
 ```bash
-docker build . -t gello:latest
+docker build . -t xcore-gello-software:latest
 python scripts/launch.py
 ```
 
 ### ROS 2 Support
 
 > **Note:** GELLO also supports ROS 2 Humble for the Franka FR3 robot. See the [ROS 2-specific README](ros2/README.md) in the `ros2` directory.
+
+## xcore 命令入口
+
+安装后可使用统一入口，也可继续执行 `experiments/` 中的脚本：
+
+```bash
+xcore-gello-software --help
+xcore-gello-software launch-nodes --robot sim_cr7
+xcore-gello-software run-env --agent gello
+python experiments/launch_nodes.py --robot sim_cr7
+```
+
+Python 包名为 `xcore_gello_software`；YAML 的 `_target_` 使用相同名称。
+`--agent gello` 是设备类型参数，保持原值。
+CR7 仿真需要现场准备的 `third_party/cr7/cr7_scene.xml` 与模型资源；
+原有本地资源无需移动。其他仿真可按需要初始化 Menagerie。
+真机六轴跟随使用 xcore-controller 的 `start_gello_follow.sh`。
 
 ## Hardware Configuration
 
@@ -105,7 +120,7 @@ Sample configs for the YAM arm and the xarm can be found in `configs`.
 
 #### Python Configuration for Non-YAM arms
 - Most widely supported across different arms
-- Located in `gello/agents/gello_agent.py`
+- Located in `xcore_gello_software/agents/gello_agent.py`
 - Uses `PORT_CONFIG_MAP` dictionary
 - Maps USB serial ports to robot configurations
 
@@ -114,10 +129,10 @@ Sample configs for the YAM arm and the xarm can be found in `configs`.
 To integrate a new robot to the Python configs:
 
 1. **Check Compatibility**: Ensure your GELLO kinematics match the target robot
-2. **Implement Robot Interface**: Create a new class implementing the `Robot` protocol from `gello/robots/robot.py`
+2. **Implement Robot Interface**: Create a new class implementing the `Robot` protocol from `xcore_gello_software/robots/robot.py`
 3. **Add Configuration**: Update the configuration system with your robot's parameters
 
-See existing implementations in `gello/robots/` for reference:
+See existing implementations in `xcore_gello_software/robots/` for reference:
 - `panda.py` - Franka Panda robot
 - `ur.py` - Universal Robots
 - `xarm_robot.py` - xArm robots
@@ -166,14 +181,14 @@ python scripts/gello_get_offset.py \
 - xArm: `1 1 1 1 1 1 1`
 - YAM: `1 -1 -1 -1 1 1`
 
-Add the generated joint offsets to `gello/agents/gello_agent.py` in the `PORT_CONFIG_MAP`.
+Add the generated joint offsets to `xcore_gello_software/agents/gello_agent.py` in the `PORT_CONFIG_MAP`.
 
 #### 2. Create Custom YAML Configurations
 
 1. Copy an existing config from `configs/` as a template (e.g., `yam_passive.yaml`).
 2. Modify the robot `_target_` and parameters for your setup:
-   - For hardware: `gello.robots.ur.URRobot`, `gello.robots.panda.PandaRobot`, etc.
-   - For simulation: `gello.robots.sim_robot.MujocoRobotServer`
+   - For hardware: `xcore_gello_software.robots.ur.URRobot`, `xcore_gello_software.robots.panda.PandaRobot`, etc.
+   - For simulation: `xcore_gello_software.robots.sim_robot.MujocoRobotServer`
 3. Update the agent configuration with your GELLO device settings:
    - `port`: Your U2D2 device path
    - `joint_offsets`: From the offset detection script
@@ -285,7 +300,7 @@ python experiments/run_env.py --agent=gello --use-save-interface
 ```
 Process collected data:
 ```bash
-python gello/data_utils/demo_to_gdict.py --source-dir=<source_dir>
+python xcore_gello_software/data_utils/demo_to_gdict.py --source-dir=<source_dir>
 ```
 
 ### Bimanual Operation
@@ -302,13 +317,13 @@ python experiments/launch_nodes.py --robot=bimanual_ur
 python experiments/run_env.py --agent=gello --bimanual
 ```
 ### FACTR Gravity Compensation
-If you want to activate gravity compensation, all the code can be found in `gello/factr`. It works similarly to the regular launch but for now it's self-contained inside its own subdirectory and supports the YAM arm in sim and in hardware.
+If you want to activate gravity compensation, all the code can be found in `xcore_gello_software/factr`. It works similarly to the regular launch but for now it's self-contained inside its own subdirectory and supports the YAM arm in sim and in hardware.
 
 The YAML provides important fields that can control the strength of the gravity compensation and friction. Feel free to mess around with the strenght and friction til you attain your desired 
 
 One important step is to add the URDF. We have provided the URDF for the active GELLO in the [Hardware Repository](https://github.com/wuphilipp/gello_mechanical). You will need to update the path in the YAML to the entry point of the URDF. 
 ```bash
-python gello/factr/gravity_compensation.py --config configs/yam_gello_factr_hw.yaml
+python xcore_gello_software/factr/gravity_compensation.py --config configs/yam_gello_factr_hw.yaml
 
 ```
 
@@ -319,7 +334,7 @@ python gello/factr/gravity_compensation.py --config configs/yam_gello_factr_hw.y
 ```
 ├── scripts/             # Utility scripts
 ├── experiments/         # Entry points and launch scripts
-├── gello/               # Core GELLO package
+├── xcore_gello_software/               # Core GELLO package
 │   ├── agents/          # Teleoperation agents
 │   ├── cameras/         # Camera interfaces
 │   ├── data_utils/      # Data processing utilities

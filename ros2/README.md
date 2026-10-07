@@ -8,7 +8,7 @@ This folder contains all required ROS 2 packages for using GELLO with a Franka F
 
 We recommend working inside the provided VS-Code Dev-Container for a seamless development experience. Dev-Containers allow you to use a consistent environment with all necessary dependencies pre-installed. 
 
-To start the Dev-Container, open the `ros2` sub-folder of this repository (not the entire `gello_software` folder) in VS Code. If prompted, select **"Reopen in Container"** to launch the workspace inside the Dev-Container. If you are not prompted, open the Command Palette (`Ctrl+Shift+P`) and select **"Dev Containers: Reopen in Container"**. Building the container for the first time will take a few minutes. For more information, refer to the [VS-Code Dev-Containers documentation](https://code.visualstudio.com/docs/devcontainers/containers).
+To start the Dev-Container, open the `ros2` sub-folder of this repository (not the entire `xcore-gello-software` folder) in VS Code. If prompted, select **"Reopen in Container"** to launch the workspace inside the Dev-Container. If you are not prompted, open the Command Palette (`Ctrl+Shift+P`) and select **"Dev Containers: Reopen in Container"**. Building the container for the first time will take a few minutes. For more information, refer to the [VS-Code Dev-Containers documentation](https://code.visualstudio.com/docs/devcontainers/containers).
 
 If you choose not to use the Dev-Container, please refer to the [Local Setup](#option-2-local-setup) section below for manual installation instructions.
 
@@ -41,7 +41,7 @@ If you add new dependencies to your packages, remember to update the relevant `r
 - Configure the `com_port` in `franka_gello_single.yaml` and `example_fr3_config_franka_hand.yaml`, and set the `robot_ip` in `example_fr3_config.yaml`. For a complete description, see the [Detailed Launch Routine](#detailed-launch-routine) section.
 - Run the following commands:
     ```bash
-      # Follow the Setup Environment section. If using Option 2, substitute /workspace/ with the path to the gello_software folder
+      # Follow the Setup Environment section. If using Option 2, substitute /workspace/ with the path to the xcore-gello-software folder
       # Go to the ROS 2 workspace, build it, and source it
       cd /workspace/ros2 && colcon build && source install/setup.bash
       # Start the GELLO node
@@ -58,7 +58,7 @@ If you add new dependencies to your packages, remember to update the relevant `r
 - Configure the `com_port` in `franka_gello_duo.yaml` and `example_fr3_duo_config_robotiq.yaml`, and set the `robot_ip` in `example_fr3_duo_config.yaml`. For a complete description, see the [Detailed Launch Routine](#detailed-launch-routine) section.
 - Run the following commands:
     ```bash
-      # Follow the Setup Environment section. If using Option 2, substitute /workspace/ with the path to the gello_software folder
+      # Follow the Setup Environment section. If using Option 2, substitute /workspace/ with the path to the xcore-gello-software folder
       # Go to the ROS 2 workspace, build it, and source it
       cd /workspace/ros2 && colcon build && source install/setup.bash
       # Start the GELLO node
@@ -324,7 +324,7 @@ If the movements of the follower robot do not feel smooth or you experience freq
 2. Reduce the USB latency from the default 16ms to 1ms: `echo 1 | sudo tee /sys/bus/usb-serial/devices/ttyUSB0/latency_timer` (replace `ttyUSB0` with your actual device)
 
 If this helps, you can add a permanent udev rule:
-1. Create a new file `/etc/udev/rules.d/99-gello.rules` **on your host PC**:
+1. Create a new file `/etc/udev/rules.d/99-xcore_gello_software.rules` **on your host PC**:
     ```
     # Lower latency_timer (1 instead of default 16 ms) & permission fix for U2D2 and OpenRB-150 devices
     ACTION=="add", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6014" MODE="0666", ATTR{device/latency_timer}="1"

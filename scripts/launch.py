@@ -6,9 +6,9 @@ current_file_path = os.path.abspath(__file__)
 
 def run_docker_container():
     user = os.getenv("USER")
-    container_name = f"gello_{user}"
+    container_name = f"xcore_gello_software_{user}"
     gello_path = os.path.abspath(os.path.join(current_file_path, "../../"))
-    volume_mapping = f"{gello_path}:/gello"
+    volume_mapping = f"{gello_path}:/xcore-gello-software"
 
     cmd = [
         "docker",
@@ -21,15 +21,15 @@ def run_docker_container():
         "--volume",
         volume_mapping,
         "--volume",
-        "/home/gello:/homefolder",
+        f"{os.path.expanduser('~')}:/homefolder",
         "--net=host",
         "--volume",
         "/dev/serial/by-id/:/dev/serial/by-id/",
         "-it",
-        "gello:latest",
+        "xcore-gello-software:latest",
         "bash",
         "-c",
-        "pip install -e third_party/DynamixelSDK/python && exec bash",
+        "pip install -e . dynamixel-sdk && exec bash",
     ]
 
     subprocess.run(cmd)

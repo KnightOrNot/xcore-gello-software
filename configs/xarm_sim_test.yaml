@@ -1,15 +1,15 @@
 robot:
-  _target_: gello.robots.sim_robot.MujocoRobotServer
+  _target_: xcore_gello_software.robots.sim_robot.MujocoRobotServer
   xml_path: "third_party/mujoco_menagerie/ufactory_xarm7/xarm7.xml"
   gripper_xml_path: null
   host: "127.0.0.1"
   port: 6001
 
 agent:
-  _target_: gello.agents.gello_agent.GelloAgent
+  _target_: xcore_gello_software.agents.gello_agent.GelloAgent
   port: "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTA2U4GA-if00-port0"
   dynamixel_config:
-    _target_: gello.agents.gello_agent.DynamixelRobotConfig
+    _target_: xcore_gello_software.agents.gello_agent.DynamixelRobotConfig
     joint_ids: [1, 2, 3, 4, 5, 6, 7]
     joint_offsets: [
       3.142,
