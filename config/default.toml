@@ -1,0 +1,17 @@
+# xcore-gello-software 默认参数。
+#
+# 只影响本仓库自带的只读 `read` 入口；controller 使用自己的 config/default.toml，
+# 并通过显式参数传入标定与串口。现场标定不写入本文件。
+
+[read]
+# GELLO 主臂的稳定 by-id 串口。
+gello_port = "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTB4C7PQ-if00-port0"
+# 只读采样频率，Hz。
+hz = 10.0
+# 采样数量；0 表示一直读到 Ctrl+C。
+samples = 0
+# 空值表示使用 GELLO 库自己的夹爪端点配置。
+gripper_open_deg = 0.0
+gripper_close_deg = 0.0
+# true 表示未配置端点时不覆盖库默认值。
+gripper_use_library_endpoints = true

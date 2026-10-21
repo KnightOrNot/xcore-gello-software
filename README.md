@@ -11,6 +11,16 @@ For additional resources:
 - [Hardware Repository](https://github.com/wuphilipp/gello_mechanical) - STL files and build instructions
 - [ROS 2 Support](ros2/README.md)
 
+## 配置与文档
+
+本地 `read` 入口的默认串口、频率、采样数和夹爪端点位于
+[config/default.toml](config/default.toml)，用 `XCORE_GELLO_CONFIG` 选择另一份文件；
+命令行参数优先。CR7 跟随与现场标定属于 controller，不在本仓库。
+
+- [架构](docs/index.md)、[安装](docs/installation.md)
+- [CLI](docs/reference/cli.md)、[配置](docs/reference/config.md)、[排障](docs/reference/errors.md)
+- [贡献指南](CONTRIBUTING.md)、[更新记录](CHANGELOG.md)
+
 ## Supported Robots
 - **I2RT YAM**
 - **Franka FR3** (ROS 2 implementation, please refer to the separate documenation in [`ros2/README.md`](ros2/README.md))

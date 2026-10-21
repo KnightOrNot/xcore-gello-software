@@ -15,7 +15,7 @@ setuptools.setup(
     packages=setuptools.find_namespace_packages(
         include=["xcore_gello_software", "xcore_gello_software.*"]
     ),
-    package_data={"": ["*.xml", "*.urdf", "*.json"]},
+    package_data={"": ["*.xml", "*.urdf", "*.json", "*.toml"]},
     entry_points={
         "console_scripts": [
             "xcore-gello-software=xcore_gello_software.cli:main",
@@ -29,5 +29,6 @@ setuptools.setup(
     license="MIT",
     install_requires=[
         "numpy",
+        "tomli>=2,<3; python_version < '3.11'",
     ],
 )

@@ -8,31 +8,44 @@ import numpy as np
 import tyro
 
 from xcore_gello_software.agents.gello_agent import GelloAgent
+from xcore_gello_software.configuration import load_config
 
 
 @dataclass
 class Args:
-    gello_port: str = (
-        "/dev/serial/by-id/usb-FTDI_USB__-__Serial_Converter_FTB4C7PQ-if00-port0"
-    )
-    hz: float = 10.0
-    samples: int = 0
+    gello_port: Optional[str] = None
+    """Stable by-id serial port; defaults to config/default.toml."""
+    hz: Optional[float] = None
+    samples: Optional[int] = None
     """Number of readings; zero means until Ctrl+C."""
     gripper_open_deg: Optional[float] = None
     gripper_close_deg: Optional[float] = None
 
 
 def main(args):
-    if not np.isfinite(args.hz) or args.hz <= 0 or args.samples < 0:
+    defaults = load_config().read
+    gello_port = args.gello_port or defaults.gello_port
+    hz = defaults.hz if args.hz is None else args.hz
+    samples = defaults.samples if args.samples is None else args.samples
+    gripper_open_deg = args.gripper_open_deg
+    gripper_close_deg = args.gripper_close_deg
+    if (
+        gripper_open_deg is None
+        and gripper_close_deg is None
+        and not defaults.gripper_use_library_endpoints
+    ):
+        gripper_open_deg = defaults.gripper_open_deg
+        gripper_close_deg = defaults.gripper_close_deg
+    if not np.isfinite(hz) or hz <= 0 or samples < 0:
         raise ValueError("hz must be positive and finite; samples must be nonnegative")
     agent = GelloAgent(
-        args.gello_port,
-        gripper_open_deg=args.gripper_open_deg,
-        gripper_close_deg=args.gripper_close_deg,
+        gello_port,
+        gripper_open_deg=gripper_open_deg,
+        gripper_close_deg=gripper_close_deg,
     )
     try:
         count = 0
-        while args.samples == 0 or count < args.samples:
+        while samples == 0 or count < samples:
             started = time.monotonic()
             joints = agent.act({})
             gripper = agent.get_gripper_state()
@@ -41,14 +54,15 @@ def main(args):
             if gripper is not None:
                 print(
                     f"gripper_raw_deg={gripper['raw_degrees']:.2f} "
-                    f"closure={gripper['closure']:.3f} openness={gripper['openness']:.3f}",
+                    f"closure={gripper['closure']:.3f} "
+                    f"openness={gripper['openness']:.3f}",
                     flush=True,
                 )
             else:
                 print("gripper=disabled", flush=True)
             count += 1
-            if args.samples == 0 or count < args.samples:
-                time.sleep(max(0, 1.0 / args.hz - (time.monotonic() - started)))
+            if samples == 0 or count < samples:
+                time.sleep(max(0, 1.0 / hz - (time.monotonic() - started)))
     except KeyboardInterrupt:
         pass
     finally:
