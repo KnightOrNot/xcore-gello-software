@@ -72,7 +72,7 @@ Python 包名为 `xcore_gello_software`；YAML 的 `_target_` 使用相同名称
 `--agent gello` 是设备类型参数，保持原值。
 CR7 仿真需要现场准备的 `third_party/cr7/cr7_scene.xml` 与模型资源；
 原有本地资源无需移动。其他仿真可按需要初始化 Menagerie。
-真机六轴跟随使用 xcore-controller 的 `start_gello_follow.sh`。
+真机六轴跟随使用 xcore-controller 的 `scripts/start_gello_follow.sh`。
 
 
 ### CR7 主臂夹爪读取与仿真
