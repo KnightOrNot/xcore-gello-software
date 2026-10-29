@@ -305,6 +305,20 @@ colcon test
 
 ## Troubleshooting
 
+### CI build stops at `build container` / `additional privileges requested`
+
+Dev Containers writes `Dockerfile-with-features` under a temporary directory,
+outside the Compose build context. Affected Compose versions do not grant Bake
+read access to that file ([upstream issue #14285](https://github.com/docker/compose/issues/14285)).
+The workflow temporarily sets `BUILDX_BAKE_ENTITLEMENTS_FS=0` only on its Dev
+Containers step. Remove this workaround once the runner's Compose release
+includes [the upstream fix](https://github.com/docker/compose/pull/14325).
+`COMPOSE_BAKE=false` does not switch off Bake in Compose v5.
+
+The action also uses `push: never`: this job builds and tests without publishing
+a container image. Its default push policy otherwise fails in the post step
+with `imageName is required to push images` when no image destination is set.
+
 ### SerialException(msg.errno, "could not open port {}: {}".format(self._port, msg))
 
 The open com port could not be opened. Possible reasons are:

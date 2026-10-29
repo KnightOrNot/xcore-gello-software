@@ -13,13 +13,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - name: Build and test ROS 2 workspace
         uses: devcontainers/ci@v0.3
+        env:
+          # Dev Containers generates a Dockerfile outside the build context.
+          # Remove when the runner includes docker/compose#14325.
+          BUILDX_BAKE_ENTITLEMENTS_FS: "0"
         with:
           subFolder: ./ros2
+          # This workflow tests the workspace without publishing a registry image.
+          push: never
           runCmd: |
+            set -e
             cd ros2
             colcon build --cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCHECK_TIDY=ON
             colcon test --event-handlers console_direct+ --pytest-args -v
